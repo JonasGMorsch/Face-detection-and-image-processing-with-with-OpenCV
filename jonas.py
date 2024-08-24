@@ -8,29 +8,6 @@ face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_fronta
 # Load the hat image with alpha channel
 hat_img = cv2.imread('hat.png', -1)
 
-# def add_hat(image, hat_img, face):
-#     # Calculate the angle of the head
-#     (x, y, w, h) = face
-#     center_x = x + w // 2
-#     center_y = y + h // 2
-
-#     # Calculate the position for the hat
-#     hat_width = w
-#     hat_height = int(hat_width * hat_img.shape[0] / hat_img.shape[1])
-#     hat_resized = cv2.resize(hat_img, (hat_width, hat_height))
-
-#     # Calculate the position to place the hat
-#     x = center_x - hat_width // 2
-#     y = center_y - h - hat_height // 2
-
-#     # Add the hat to the image
-#     for i in range(hat_height):
-#         for j in range(hat_width):
-#             if hat_resized[i, j, 3] != 0:  # Check if the pixel is not transparent
-#                 image[y + i, x + j] = hat_resized[i, j, :3]
-
-#     return image
-
 
 def add_hat(frame, hat_img, face_cascade):
     # Convert the frame to grayscale
@@ -80,6 +57,7 @@ def add_hat(frame, hat_img, face_cascade):
 
 
 def resize_with_aspect_ratio(image, width=None, height=None):
+
     (h, w) = image.shape[:2]
     if width is None and height is None:
         return image
@@ -97,6 +75,10 @@ def resize_with_aspect_ratio(image, width=None, height=None):
         r_h = height / float(h)
         r = min(r_w, r_h)
         dim = (int(w * r), int(h * r))
+        
+    if len(image.shape) == 2:
+        image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+            
     return cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
 
 
@@ -110,10 +92,6 @@ cap.set(cv2.CAP_PROP_FPS, 60)
 # Create a resizable window
 cv2.namedWindow('Frame', cv2.WINDOW_NORMAL)
 
-
-# Define the target frame rate
-target_fps = 60
-frame_duration = 1.0 / target_fps
 
 # Initialize the counter and start time
 counter = 0
@@ -142,8 +120,8 @@ while True:
 
 
 
-    frame = add_hat(frame, hat_img, face_cascade)
-
+    frame = cv2.Canny(frame, 100, 200)
+    #frame = add_hat(frame, hat_img, face_cascade)
 
     frame_resized = resize_with_aspect_ratio(
         frame, width=window_width,height=window_height)
