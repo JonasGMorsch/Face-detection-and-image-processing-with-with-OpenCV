@@ -64,6 +64,8 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 2160)
 cv2.namedWindow('Frame', cv2.WINDOW_NORMAL)
 
 while True:
+
+    _, _, target_width, target_height = cv2.getWindowImageRect('Frame')  # Get the current window size
     
     ret, frame = cap.read()
     if not ret:
@@ -75,10 +77,8 @@ while True:
     # for face in faces:
     #     frame = add_hat(frame, hat_img, face)
 
-    
-    # Get the current window size
-    _, _, target_width, target_height = cv2.getWindowImageRect('Frame')
-    
+
+
     frame_resized = resize_with_aspect_ratio(
         frame, width=target_width,height=target_height)
         
