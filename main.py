@@ -1,5 +1,17 @@
 import cv2
+import tkinter as tk
+from tkinter import Button
+import threading
 import numpy as np
+
+# Global variables to keep track of states
+binary_on = False
+edge_detection_on = False
+stop_video = True  # Start with video capture stopped
+laplacean_on = False
+laplacean_k = np.array([[0 ,1 ,0],
+                       [1, -4, 1],
+                       [0, 1, 0]])
 
 # Load the face detector
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')

@@ -9,12 +9,20 @@ binary_on = False
 edge_detection_on = False
 stop_video = True  # Start with video capture stopped
 laplacean_on = False
+face_detect = False
+hat_on = False
 laplacean_k = np.array([[0 ,1 ,0],
                        [1, -4, 1],
                        [0, 1, 0]])
 
+# Load the face detector
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+# Load the hat image with alpha channel
+hat_img = cv2.imread('hat.png', -1)
+
 # Function to toggle binarization
-def add_hat(image, hat_img, face):
+def add_hat(frame, hat_img, face):
     # Calculate the angle of the head
     (x, y, w, h) = face
     center_x = x + w // 2
@@ -33,13 +41,17 @@ def add_hat(image, hat_img, face):
     for i in range(hat_height):
         for j in range(hat_width):
             if hat_resized[i, j, 3] != 0:  # Check if the pixel is not transparent
-                image[y + i, x + j] = hat_resized[i, j, :3]
+                frame[y + i, x + j] = hat_resized[i, j, :3]
 
-    return image
+    return frame
 
 def toggle_binarization():
     global binary_on
     binary_on = not binary_on
+
+def toggle_hat():
+    global hat_on
+    hat_on = not hat_on
 
 # Function to toggle laplacean edge detection
 def toggle_laplacean():
@@ -79,6 +91,9 @@ def capture_and_display_video():
         print("Error: Could not open webcam.")
         return
 
+    # Initialize faces as an empty list
+    faces = []
+
     # Loop to continuously capture frames from the webcam
     while not stop_video:
         # Capture frame-by-frame
@@ -91,7 +106,13 @@ def capture_and_display_video():
 
         # Convert the frame to grayscale
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        
+        
+        #Apply face detection
+        if face_detect:
+            faces = face_cascade.detectMultiScale(gray_frame, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
 
+                
         # Apply adaptive Gaussian thresholding if toggled on
         if binary_on:
             frame = cv2.adaptiveThreshold(
@@ -116,9 +137,15 @@ def capture_and_display_video():
         # Display the captured frame in a window
         cv2.imshow('Webcam Video', frame)
 
+         # Apply hat if toggled on
+        if add_hat:
+            for face in faces:
+                frame = add_hat(frame, hat_img, face)
+                
         # Break the loop if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
 
     # Release the webcam and close all OpenCV windows
     cap.release()
@@ -148,8 +175,14 @@ if __name__ == "__main__":
     laplacean_button.pack()
 
     # Create a button to start/stop the video stream
+    hat_button = Button(root, text="Habemus CHAPÉU", command=toggle_hat())
+    hat_button.pack()
+
+    # Create a button to start/stop the video stream
     start_button = Button(root, text="Start Video", command=toggle_video_stream)
-    start_button.pack()
+    start_button.pack()  
+
+    
     
     # Bind the closing event to the on_closing function
     root.protocol("WM_DELETE_WINDOW", on_closing)
