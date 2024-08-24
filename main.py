@@ -1,78 +1,52 @@
 import cv2
-import tkinter as tk
-from tkinter import Button
-import threading
+import numpy as np
 
-# Global variable to keep track of binarization state
-binary_on = False
+# Load the face detector
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
-def toggle_binarization():
-    global binary_on
-    binary_on = not binary_on
+# Load the hat image with alpha channel
+hat_img = cv2.imread('hat.png', -1)
 
-def capture_and_display_video():
-    # Open a connection to the webcam (0 is usually the default webcam)
-    cap = cv2.VideoCapture(0)
+def add_hat(image, hat_img, face):
+    # Calculate the angle of the head
+    (x, y, w, h) = face
+    center_x = x + w // 2
+    center_y = y + h // 2
 
-    # Check if the webcam is opened correctly
-    if not cap.isOpened():
-        print("Error: Could not open webcam.")
-        return
+    # Calculate the position for the hat
+    hat_width = w
+    hat_height = int(hat_width * hat_img.shape[0] / hat_img.shape[1])
+    hat_resized = cv2.resize(hat_img, (hat_width, hat_height))
 
-    # Loop to continuously capture frames from the webcam
-    while True:
-        # Capture frame-by-frame
-        ret, frame = cap.read()
+    # Calculate the position to place the hat
+    x = center_x - hat_width // 2
+    y = center_y - h - hat_height // 2
 
-        # Check if the frame was successfully captured
-        if not ret:
-            print("Error: Failed to capture image.")
-            break
+    # Add the hat to the image
+    for i in range(hat_height):
+        for j in range(hat_width):
+            if hat_resized[i, j, 3] != 0:  # Check if the pixel is not transparent
+                image[y + i, x + j] = hat_resized[i, j, :3]
 
-        # Convert the frame to grayscale
-        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    return image
 
-        # Apply adaptive Gaussian thresholding if toggled on
-        if binary_on:
-            frame = cv2.adaptiveThreshold(
-                gray_frame, 
-                255, 
-                cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
-                cv2.THRESH_BINARY, 
-                11,  # Block size (must be odd)
-                2    # Constant subtracted from the mean
-            )
-        else:
-            frame = gray_frame
+# Open the video capture
+cap = cv2.VideoCapture(0)
 
-        # Display the captured frame in a window
-        cv2.imshow('Webcam Video', frame)
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
 
-        # Break the loop if 'q' is pressed
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
 
-    # Release the webcam and close all OpenCV windows
-    cap.release()
-    cv2.destroyAllWindows()
+    for face in faces:
+        frame = add_hat(frame, hat_img, face)
 
-def start_video_stream():
-    # Run the OpenCV video capture in a separate thread
-    video_thread = threading.Thread(target=capture_and_display_video)
-    video_thread.start()
+    cv2.imshow('Frame', frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
-#if name == "main":
-    # Create the main window
-    root = tk.Tk()
-    root.title("Webcam Video with Toggle")
-
-    # Create a button to toggle binarization
-    toggle_button = Button(root, text="Toggle Binarization", command=toggle_binarization)
-    toggle_button.pack()
-
-    # Create a button to start the video stream
-    start_button = Button(root, text="Start Video", command=start_video_stream)
-    start_button.pack()
-
-    # Start the Tkinter event loop
-    root.mainloop()
+cap.release()
+cv2.destroyAllWindows()
