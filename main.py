@@ -301,7 +301,7 @@ def capture_and_display_video():
         # Check if one second has passed
         if elapsed_time >= 1.0:
             # Print the counter value
-            print(f'Loops per second: {counter}')
+            print(f'WEBCAM FPS: {counter}')
             
             # Reset the counter and start time
             counter = 0
