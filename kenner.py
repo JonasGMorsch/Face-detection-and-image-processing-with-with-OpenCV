@@ -9,8 +9,8 @@ binary_on = False
 edge_detection_on = False
 stop_video = True  # Start with video capture stopped
 laplacean_on = False
-face_detect = False
-hat_on = False
+face_detect = True
+hat_on = True
 laplacean_k = np.array([[0 ,1 ,0],
                        [1, -4, 1],
                        [0, 1, 0]])
@@ -92,7 +92,7 @@ def capture_and_display_video():
         return
 
     # Initialize faces as an empty list
-    faces = []
+    #faces = []
 
     # Loop to continuously capture frames from the webcam
     while not stop_video:
@@ -109,8 +109,8 @@ def capture_and_display_video():
         
         
         #Apply face detection
-        if face_detect:
-            faces = face_cascade.detectMultiScale(gray_frame, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+        #if face_detect:
+            #faces = face_cascade.detectMultiScale(gray_frame, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
 
                 
         # Apply adaptive Gaussian thresholding if toggled on
@@ -134,14 +134,23 @@ def capture_and_display_video():
         if laplacean_on:
             frame = cv2.filter2D(frame, -1, laplacean_k)
 
+
+         # Apply hat if toggled on
+        if hat_on:
+            faces = face_cascade.detectMultiScale(gray_frame, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+            for (x, y, w, h) in faces:
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)  # Draw a rectangle around the face
+                frame = add_hat(frame, hat_img, (x, y, w, h))    
+            
+            
+            #for face in faces: codigo original, descomentar depois
+                #frame = add_hat(frame, hat_img, face)
+
+                
         # Display the captured frame in a window
         cv2.imshow('Webcam Video', frame)
 
-         # Apply hat if toggled on
-        if add_hat:
-            for face in faces:
-                frame = add_hat(frame, hat_img, face)
-                
+
         # Break the loop if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -175,7 +184,7 @@ if __name__ == "__main__":
     laplacean_button.pack()
 
     # Create a button to start/stop the video stream
-    hat_button = Button(root, text="Habemus CHAPÉU", command=toggle_hat())
+    hat_button = Button(root, text="Habemus CHAPÉU", command=toggle_hat)
     hat_button.pack()
 
     # Create a button to start/stop the video stream
