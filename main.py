@@ -31,7 +31,7 @@ def add_hat(frame, hat_img, face_cascade):
     #faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
     #faces = face_cascade.detectMultiScale(gray, scaleFactor=1.25, minNeighbors=5, minSize=(30, 30))
     #faces = face_cascade.detectMultiScale( gray, scaleFactor=1.25, minNeighbors=10,minSize=(100, 100)) 
-    faces = face_cascade.detectMultiScale( frame, scaleFactor=1.25, minNeighbors=6,minSize=(100, 100))
+    faces = face_cascade.detectMultiScale( frame, scaleFactor=1.25, minNeighbors=6,minSize=(50, 50))
 
     for face in faces:
         # Calculate the angle of the head
@@ -206,10 +206,10 @@ def toggle_edge_detection():
 def capture_and_display_video():
 
     # Open the video capture with DirectShow backend and set buffer size
-    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
     cap.set(cv2.CAP_PROP_BUFFERSIZE, 0)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 3840)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 2160)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
     cap.set(cv2.CAP_PROP_FPS, 60)
     
     # Create a resizable window
@@ -240,28 +240,13 @@ def capture_and_display_video():
         last_window_height = window_height
     
     
-        # Convert the frame to grayscale
-        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
     
-        # Apply adaptive Gaussian thresholding if toggled on
-        if binary_on:
-            frame = cv2.adaptiveThreshold(gray_frame,
-                255, 
-                cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
-                cv2.THRESH_BINARY_INV, 
-                15,  # Block size (must be odd)
-                2    # Constant subtracted from the mean
-            )
+
         #else:
             #frame = gray_frame
 
-        # Apply Canny edge detection if toggled on
-        if edge_detection_on:
-            frame = cv2.Canny(frame, 100, 200)
-            
-         # Apply Laplacean edge detection if toggled on
-        if laplacean_on:
-            frame = cv2.filter2D(frame, -1, laplacean_k)
+
 
          # Apply hat if toggled on
         if hat_on:
@@ -276,6 +261,27 @@ def capture_and_display_video():
             #for face in faces: codigo original, descomentar depois
                 #frame = add_hat(frame, hat_img, face)
   
+        # Convert the frame to grayscale
+        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+  
+        # Apply adaptive Gaussian thresholding if toggled on
+        if binary_on:
+            frame = cv2.adaptiveThreshold(gray_frame,
+                255, 
+                cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                cv2.THRESH_BINARY_INV, 
+                15,  # Block size (must be odd)
+                2    # Constant subtracted from the mean
+            )
+  
+        
+        # Apply Canny edge detection if toggled on
+        if edge_detection_on:
+            frame = cv2.Canny(frame, 100, 200)
+            
+         # Apply Laplacean edge detection if toggled on
+        if laplacean_on:
+            frame = cv2.filter2D(frame, -1, laplacean_k)         
     
         frame_resized = resize_with_aspect_ratio(
             frame, width=window_width,height=window_height)
@@ -287,6 +293,7 @@ def capture_and_display_video():
         
         # Place the resized image onto the new background
         background[y_offset:y_offset+height, x_offset:x_offset+width] = frame_resized[:, :, :3]
+    
     
         # Display the final image
         #cv2.imshow('Webcam Video', frame)
