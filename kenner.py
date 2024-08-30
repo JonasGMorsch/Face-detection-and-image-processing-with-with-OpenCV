@@ -140,7 +140,7 @@ def capture_and_display_video():
             faces = face_cascade.detectMultiScale(gray_frame, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
             for (x, y, w, h) in faces:
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)  # Draw a rectangle around the face
-                frame = add_hat(frame, hat_img, (x, y, w, h))    
+                #frame = add_hat(frame, hat_img, (x, y, w, h))    
             
             
             #for face in faces: codigo original, descomentar depois
