@@ -71,6 +71,8 @@ pip install dlib
 pause
 
 
+python -m pip install dlib-19.24.1-cp311-cp311-win_amd64.whl
+
 
 
 # Install Visual Studio Build Tools with Desktop development with C++ workload
